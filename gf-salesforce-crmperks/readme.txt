@@ -1,10 +1,10 @@
-=== WP Gravity Forms Salesforce ===
+-=== WP Gravity Forms Salesforce ===
 Contributors: crmperks, sbazzi, asif876
 Tags: salesforce, gravity forms salesforce, gravity forms salesforce crm, gravity forms salesforce integration, salesforce wordpress gravity forms
 Requires at least: 4.7
 Tested up to: 6.9
-Stable tag: 1.5.2
-Version: 1.5.2
+Stable tag: 1.5.3
+Version: 1.5.3
 Requires PHP: 5.3
 License: GPLv3
 License URI: http://www.gnu.org/licenses/gpl-3.0.html
@@ -184,8 +184,11 @@ Yes, as you connect your normal salesforce account similarly, you can connect yo
 == Changelog ==
 
 
+= 1.5.3 =
+* fixed "empty basedir with uploaded file" issue.
+
 = 1.5.2 =
-* fixed "list field" issue.
+* fixed "updating OpportunityContactRole" issue.
 
 = 1.5.1 =
 * fixed "image choice field" issue.

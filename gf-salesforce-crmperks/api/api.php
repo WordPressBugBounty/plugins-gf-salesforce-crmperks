@@ -147,7 +147,7 @@ if(!isset($info['instance_url']) || empty($info['instance_url'])){
     return array( 'errorCode'=>'2004' , 'message'=>'Invalid POST body - 2004');  
   }
   }
-if(!empty($dev_key)){
+if(!empty($dev_key)){ 
   $sales_res=$this->post_sales($dev_key,$url.$path,$method,$body,$head); 
   $sales_response=json_decode($sales_res,true); 
 }else{
@@ -193,7 +193,7 @@ if(!empty($dev_key)){
   }
   if($method != "get"){
 $header['content-length']= !empty($body) ? strlen($body) : 0;
-  }   
+  }   //var_dump($header,$path,$body,$method);
   $response = wp_remote_post( $path, array(
   'method' => strtoupper($method),
   'timeout' => $this->timeout,
@@ -445,7 +445,7 @@ $field_info=array_merge($sd,$field_info);
   public function get_crm_objects(){
 
   $sales_res=$this->post_sales_arr('/services/data/'.$this->api_version.'/sobjects/',"get","");
-
+///echo json_encode($sales_res);
   $fields=array();
   if(isset($sales_res['sobjects'])){
   foreach($sales_res['sobjects'] as $object){
@@ -581,10 +581,21 @@ public function verify_files($files,$old=array()){
   */
 public function push_object($object,$temp_fields,$meta){  
 
-    //$pdf  = GPDFAPI::get_pdf( 1, '5fba18c9c0304' ); $pdf  = GPDFAPI::get_entry_pdfs( 789 ); var_dump($pdf); die(); 
+/*    //$pdf  = GPDFAPI::get_pdf( 1, '5fba18c9c0304' ); $pdf  = GPDFAPI::get_entry_pdfs( 789 ); var_dump($pdf); die(); 
 //$res=$this->get_entry('Lead','00Q0H00001sbljWUAQ');
-//$res=$this->post_sales_arr('/services/data/v39.0/sobjects/RecordType/describe','get','');
-//var_dump($temp_fields,$meta); die();
+$arr=array('ssot__CompanyName__c'=>'test','ssot__ContactPointEmailId__c'=>'bioinfo35@gmail.com');
+$arr='{
+  "formData": {
+    "first": "DAngelo",
+    "last": "Cunningham",
+    "email": "dcunningham@example.com",
+    "comp": "Apples"
+  },
+  "uniqueId": "ce96199f-cd6e-431a-b4cf-20ccc9259999"
+}';
+//$res=$this->post_sales_arr('/services/data/'.$this->api_version.'/sobjects/ssot__Prospect__dlm','post',$arr); var_dump($res); die();
+//$res=$this->post_sales_arr('/services/data/v57.0/connect/form-handler/MC5QZR5CKLJJENHEQEYWFOITPTMM/submit','post',$arr); var_dump($res); die();
+//$res=$this->post_sales_arr('/services/data/v63.0/connect/cms/delivery/channels','get'); var_dump($res,$this->info); die();*/
   $fields_info=array(); $fields=array(); $extra=array();
   $id=""; $error=""; $action=""; $link=""; $search=$search_response=$status=""; 
   $files=array();
@@ -672,7 +683,6 @@ unset($fields['vx_camp_id']);
   if(!empty($search) || !empty($search2)){
     //  $search=array('FirstName'=>esc_sql("+~'john@"));
     // $search=array('Phone'=>esc_sql("(810) 476-3056"));
-    
   //if primary key option is not empty and primary key field value is not empty , then check search object
   $search_response=$sales_response=$this->search_in_sf($object,$search,$search2); 
  //var_dump($search_response,$search,$search2); die();
@@ -756,7 +766,7 @@ if(!empty($items['extra'])){
 }
 //var_dump($line_items,$items); die();
 $sales_response='';
-  $post_data=json_encode($fields);
+ // $post_data=json_encode($fields);
   //if($error ==""){
   if($id == ""){
   $action="Added";
@@ -803,6 +813,8 @@ $entry_exists=true;
          } if($object == 'PricebookEntry'){
        unset($fields['Product2Id']);
        unset($fields['Pricebook2Id']);
+         }if($object == 'OpportunityContactRole'){
+       unset($fields['OpportunityId']);
          }
       //   $fields['Custom_time_type__c']='12:00+00';
         
@@ -872,7 +884,9 @@ if(!empty($id)){
     $post=array('Title'=>$file_name); 
          if( filter_var($file, FILTER_VALIDATE_URL) && strpos($file,'/gravity_forms/') !== false) { //!ini_get('allow_url_fopen')
       $upload_dir=wp_upload_dir();
-       $file=str_replace($upload_dir['baseurl'],$upload_dir['basedir'],$file); 
+      if(!empty(trim($upload_dir['basedir'],'/'))){
+       $file=str_replace($upload_dir['baseurl'],$upload_dir['basedir'],$file);
+      } 
     }
   $c=file_get_contents($file);
   

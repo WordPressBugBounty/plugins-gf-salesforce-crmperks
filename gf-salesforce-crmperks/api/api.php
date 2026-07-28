@@ -9,7 +9,7 @@ class vxg_salesforce_api extends vxg_salesforce{
 public $info=array();
   public $error= "";
   public $timeout=30;
-  public $api_version='v57.0';
+  public $api_version='v65.0';
   public $api_res='';
   
 function __construct($info) { 
@@ -29,26 +29,46 @@ if(!empty(self::$api_timeout)){
   * @param  array $posted_form (optional) Form submitted by the user,In case of API error this form will be sent to email
   * @return array  Salesforce API Access Informations
   */
-public function get_token($info=""){
+public function get_token($info=""){ 
   if(!is_array($info)){
   $info=$this->info;
   }
-  if(!isset($info['refresh_token']) || empty($info['refresh_token'])){
-   return $info;   
-  }
   $client=$this->client_info(); 
   ////////it is oauth    
-  $body=array("client_id"=>$client['client_id'],"client_secret"=>$client['client_secret'],"redirect_uri"=>$client['call_back'],"grant_type"=>"refresh_token","refresh_token"=>$info['refresh_token']);
+  $body=array("client_id"=>$client['client_id'],"client_secret"=>$client['client_secret'],"grant_type"=>"client_credentials");
+   if(isset($info['api_type']) && $info['api_type'] == 'client'){
+      if(!isset($info['org_name']) || empty($info['org_name'])){
+   return $info;   
+  }   
+     $env=$info['org_name'];
+      if( !empty($info['env'])){
+       $env.='sandbox'; 
+      }
+      $env.='.my'; 
+    $info["instance_url"]='https://'.$env.'.salesforce.com';    
+   }else{
+     if(!isset($info['refresh_token']) || empty($info['refresh_token'])){
+   return $info;   
+  }
+  $body['redirect_uri']=$client['call_back'];    
+  $body['refresh_token']=$info['refresh_token'];    
+  $body['grant_type']='refresh_token';    
      $env='login';
       if( !empty($info['env'])){
        $env='test';  
       }
+   }  
   $res=$this->post_sales('token',"https://$env.salesforce.com/services/oauth2/token","post",$body);
-
+//var_dump($res,$body,$env); die();
   $re=json_decode($res,true); 
   if(isset($re['access_token']) && $re['access_token'] !=""){ 
   $info["access_token"]=$re['access_token'];
+  if(isset($re['refresh_token'])){
+  $info["refresh_token"]=$re['refresh_token'];
+  }
+  if(isset($re['instance_url'])){
   $info["instance_url"]=$re['instance_url'];
+  }
   $info["issued_at"]=$re['issued_at'];
 //  $info["org_id"]=$re['id'];
   $info["class"]='updated';
@@ -64,7 +84,34 @@ public function get_token($info=""){
   //update salesforce info 
   //got new token , so update it in db
   $this->update_info( array("data"=> $info),$info['id']); 
+  $this->info=$info;
   return $info; 
+  }
+public function get_code($info=""){
+  if(!is_array($info)){
+  $info=$this->info;
+  }
+  if(!isset($info['org_name']) || empty($info['org_name'])){
+   return '';   
+  }
+  $env=$info['org_name'];
+      if( !empty($info['env'])){
+       $env.='.sandbox';  
+      }
+  $res=$this->post_sales('token',"https://$env.my.salesforce.com/services/oauth2/pkce/generator",'get');
+
+  $re=json_decode($res,true);   $code='';
+  if(isset($re['code_challenge']) && $re['code_challenge'] !=""){ 
+  $code=$info["code"]=$re['code_challenge'];
+  $info["verify"]=$re['code_verifier'];
+  $token=$info;
+  }else{
+  $info['error']='No PKCE code - Invalid salesforce domain name';
+   $info["class"]='error';
+  }
+  //got new token , so update it in db
+  $this->update_info( array("data"=> $info),$info['id']); 
+  return $code; 
   }
 public function handle_code(){
       $info=$this->info;
@@ -79,7 +126,8 @@ public function handle_code(){
       if(!empty($_REQUEST['vx_env']) || !empty($info['env'])){
        $env='test'; $info['env']='test';  
       }
-  $body=array("client_id"=>$client['client_id'],"client_secret"=>$client['client_secret'],"redirect_uri"=>$client['call_back'],"grant_type"=>"authorization_code","code"=>$code);
+    $verify=$this->post('verify',$info);  
+  $body=array("client_id"=>$client['client_id'],"client_secret"=>$client['client_secret'],"redirect_uri"=>$client['call_back'],"grant_type"=>"authorization_code","code"=>$code,'code_verifier'=>$verify);
   $res=$this->post_sales("token","https://$env.salesforce.com/services/oauth2/token","post",$body);
   
   $log_str="Getting access token from code";
@@ -127,10 +175,21 @@ public function handle_code(){
   */
   public  function post_sales_arr($path,$method,$body=""){
   $info=$this->info;    
-  $get_token=false; $error=array(array( 'errorCode'=>'2005' , 'message'=>__('No Access to Salesforce API - 2005','gravity-forms-salesforce-crm'))); 
+  $get_token=false;
+  if(isset($info['api_type']) && $info['api_type'] == 'client'){
+    if(empty($info['access_token'])){
+   $info=$this->get_token();      
+    }  
+  }
+   $error=array( 'errorCode'=>'2005' , 'message'=>__('No Access to Salesforce API - 2005','gravity-forms-salesforce-crm')); 
+ if(isset($info['error'])){
+ $error['message']=$info['error'];    
+ } 
+ $error=array($error); 
 if(!isset($info['instance_url']) || empty($info['instance_url'])){
     return $error;
 }
+
   $url=$info['instance_url'];
   $dev_key=$info['access_token'];
   $head=array(); 
@@ -149,7 +208,7 @@ if(!isset($info['instance_url']) || empty($info['instance_url'])){
   }
 if(!empty($dev_key)){ 
   $sales_res=$this->post_sales($dev_key,$url.$path,$method,$body,$head); 
-  $sales_response=json_decode($sales_res,true); 
+  $sales_response=json_decode($sales_res,true);  
 }else{
   $get_token=true;    
 }
@@ -200,8 +259,7 @@ $header['content-length']= !empty($body) ? strlen($body) : 0;
   'headers' => $header,
   'body' => $body
   )
-  );
-    
+  ); 
   return !is_wp_error($response) && isset($response['body']) ? $response['body'] : "";
   }
   /**
@@ -216,7 +274,14 @@ $header['content-length']= !empty($body) ? strlen($body) : 0;
   $call_back="https://www.crmperks.com/sf_auth/";
   //custom app
   if(is_array($info)){
-      if($this->post('custom_app',$info) == "yes" && $this->post('app_id',$info) !="" && $this->post('app_secret',$info) !="" && $this->post('app_url',$info) !=""){
+      $custom_app=false;
+       if($this->post('custom_app',$info) == "yes" && $this->post('app_id',$info) !="" && $this->post('app_secret',$info) !="" && $this->post('app_url',$info) !=""){
+       $custom_app=true;    
+       }
+       if($this->post('api_type',$info) == 'client'){
+        $custom_app=true;    
+       }
+      if($custom_app){
      $client_id=$this->post('app_id',$info);     
      $client_secret=$this->post('app_secret',$info);     
      $call_back=$this->post('app_url',$info);     
@@ -443,8 +508,8 @@ $field_info=array_merge($sd,$field_info);
   * @return array
   */
   public function get_crm_objects(){
-
   $sales_res=$this->post_sales_arr('/services/data/'.$this->api_version.'/sobjects/',"get","");
+  //var_dump($sales_res,$this->info); die();
 ///echo json_encode($sales_res);
   $fields=array();
   if(isset($sales_res['sobjects'])){
@@ -591,11 +656,13 @@ $arr='{
     "email": "dcunningham@example.com",
     "comp": "Apples"
   },
-  "uniqueId": "ce96199f-cd6e-431a-b4cf-20ccc9259999"
-}';
-//$res=$this->post_sales_arr('/services/data/'.$this->api_version.'/sobjects/ssot__Prospect__dlm','post',$arr); var_dump($res); die();
+  "uniqueId": "ce96199f-cd6e-431a-b4cf-20ccc9259999" ssot__Prospect__dlm
+}';*/
+//$arr=array('email'=>'bioinfo35@gmail.com','FirstName'=>'john first');
+//$res=$this->post_sales_arr('/services/data/v65.0/sobjects/Prospect/describe','get'); echo json_encode($res); die();
+//$res=$this->post_sales_arr('/services/data/v65.0/sobjects/Prospect','post',$arr); var_dump($res); die();
 //$res=$this->post_sales_arr('/services/data/v57.0/connect/form-handler/MC5QZR5CKLJJENHEQEYWFOITPTMM/submit','post',$arr); var_dump($res); die();
-//$res=$this->post_sales_arr('/services/data/v63.0/connect/cms/delivery/channels','get'); var_dump($res,$this->info); die();*/
+//$res=$this->post_sales_arr('/services/data/v63.0/connect/cms/delivery/channels','get'); var_dump($res,$this->info); die();
   $fields_info=array(); $fields=array(); $extra=array();
   $id=""; $error=""; $action=""; $link=""; $search=$search_response=$status=""; 
   $files=array();

@@ -65,6 +65,8 @@ public function get_token($info=""){
   $info["access_token"]=$re['access_token'];
   if(isset($re['refresh_token'])){
   $info["refresh_token"]=$re['refresh_token'];
+  }else{
+       $info['sales_token_time']=current_time('timestamp');
   }
   if(isset($re['instance_url'])){
   $info["instance_url"]=$re['instance_url'];
@@ -77,7 +79,7 @@ public function get_token($info=""){
   $info['error']=isset($re['error_description']) ? $re['error_description'] : '';
   $info['access_token']="";
    $info["class"]='error';
-  $token=array(array('errorCode'=>'406','message'=>$re['error_description']));
+  $token=array(array('errorCode'=>'406','message'=>$info['error']));
 
   }
   $info["valid_api"]=current_time('timestamp')+86400; //api validity check

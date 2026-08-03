@@ -213,7 +213,7 @@ $this->push($entry,$form,'add_note');
   */
   public  function setup(){
 
-      RGForms::add_settings_page(array('name' => $this->id,'tab_label' => esc_html__('Salesforce','gravity-forms-salesforce-crm'),"handler"=>array($this, "settings_page") ,'icon' => 'dashicons-cloud dashicons'),array($this, "settings_page"));
+      GFForms::add_settings_page(array('name' => $this->id,'tab_label' => esc_html__('Salesforce','gravity-forms-salesforce-crm'),"handler"=>array($this, "settings_page") ,'icon' => 'dashicons-cloud dashicons'),array($this, "settings_page"));
  
            global $wpdb; 
   if($this->post('vx_tab_action_'.$this->id)=="export_log"){

@@ -3,8 +3,8 @@ Contributors: crmperks, sbazzi, asif876
 Tags: salesforce, gravity forms salesforce, gravity forms salesforce crm, gravity forms salesforce integration, salesforce wordpress gravity forms
 Requires at least: 4.7
 Tested up to: 7.0
-Stable tag: 1.5.4
-Version: 1.5.4
+Stable tag: 1.5.5
+Version: 1.5.5
 Requires PHP: 5.3
 License: GPLv3
 License URI: http://www.gnu.org/licenses/gpl-3.0.html
@@ -27,7 +27,7 @@ Gravity Forms salesforce Add-on sends form submissions from Gravity Forms to Sal
 
 **Connecting salesforce account**
 
-Connect any gravity forms form to salesforce account by safe and secure Oauth 2.0. Additionally, you can connect multiple salesforce accounts to Gravity Forms.
+Connect any gravity forms form to salesforce account by safe and secure Oauth 2.0. Plugin supports WebServer and client credentials oauth flows. Additionally, you can connect multiple salesforce accounts to Gravity Forms.
 
 **Map salesforce crm fields**
 
@@ -182,6 +182,11 @@ Following features are not available in free version.
 Yes, as you connect your normal salesforce account similarly, you can connect your sandbox account. fields mapping is same for both normal and sandbox accounts.
 
 == Changelog ==
+
+
+= 1.5.5 =
+* fixed "php warning issue when salesforce connection fails".
+* fixed "gravity forms 3.0 compatibility" issue.
 
 = 1.5.4 =
 * upgraded "salesforce REST api version".

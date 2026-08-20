@@ -84,7 +84,7 @@ echo '<option value="'.esc_attr($k).'" '.$sel.'>'.esc_html($v).'</option>';
   <div class="vx_tabs" id="tab_vx_api" style="<?php if($this->post('api',$info) == "web"){echo 'display:none';} ?>">
   
       <div class="crm_field">
-  <div class="crm_field_cell1"><label for="vx_org_name"><?php esc_html_e('Salesforce domain name','gravity-forms-salesforce-crm'); ?></label>
+  <div class="crm_field_cell1"><label for="vx_org_name"><?php esc_html_e('Salesforce Org name','gravity-forms-salesforce-crm'); ?></label>
   </div>
   <div class="crm_field_cell2">
   <input type="text" name="crm[org_name]" value="<?php echo esc_attr($this->post('org_name',$info)); ?>" id="vx_org_name" class="crm_text" required="required" placeholder="<?php echo esc_html_e('your-org-domain only','gravity-forms-salesforce-crm');  ?>" <?php if( $api!='web' && !empty($info['access_token'])){ echo 'disabled="disabled"'; } ?>>

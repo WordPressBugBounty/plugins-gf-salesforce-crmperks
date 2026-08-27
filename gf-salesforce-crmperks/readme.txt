@@ -2,9 +2,9 @@
 Contributors: crmperks, sbazzi, asif876
 Tags: salesforce, gravity forms salesforce, gravity forms salesforce crm, gravity forms salesforce integration, salesforce wordpress gravity forms
 Requires at least: 4.7
-Tested up to: 7.0
-Stable tag: 1.5.6
-Version: 1.5.6
+Tested up to: 7.1
+Stable tag: 1.5.7
+Version: 1.5.7
 Requires PHP: 5.3
 License: GPLv3
 License URI: http://www.gnu.org/licenses/gpl-3.0.html
@@ -183,6 +183,9 @@ Yes, as you connect your normal salesforce account similarly, you can connect yo
 
 == Changelog ==
 
+
+= 1.5.7 =
+* fixed "sandbox pkce code" issue.
 
 = 1.5.6 =
 * fixed "sandbox domain name" issue.
